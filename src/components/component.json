@@ -1,0 +1,42 @@
+{
+    "name": "t:sections.compName.name",
+    "settings": [
+        {
+            "type": "text",
+            "id": "title",
+            "label": "t:sections.compName.settings.title",
+            "default": "compName Title"
+        },
+        {
+            "type": "range",
+            "id": "fontsize_title",
+            "label": "t:sections.compName.settings.fontsize_title",
+            "min": 6,
+            "max": 60,
+            "step": 1,
+            "unit": "px",
+            "default": 16
+        },
+        {
+            "type": "range",
+            "id": "lineheight_title",
+            "label": "t:sections.compName.settings.lineheight_title",
+            "min": 6,
+            "max": 60,
+            "step": 1,
+            "unit": "px",
+            "default": 16
+        },
+        {
+            "type": "image_picker",
+            "id": "image",
+            "label": "t:sections.compName.settings.image"
+        }
+    ],
+    "presets": [
+        {
+            "name": "t:sections.compName.name",
+            "category": "text"
+        }
+    ]
+}
