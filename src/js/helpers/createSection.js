@@ -71,7 +71,7 @@ createComponent = async function () {
 // and translation keys
 addTranslationKeys = async function () {
 
-  const fileName = '../../theme/locales/en.default.schema.json';
+  const fileName = '../../locales/en.default.schema.json';
   const file = require(fileName);
 
   file.sections[name] = {

@@ -40,7 +40,7 @@ log = async function (text, mode) {
 // for user prompt(y/n) => add js script tag to theme.liquid
 addJsScriptTagToThemeLiquid = async function (name) {
 
-  var themeFile = fs.readFileSync("theme/layout/theme.liquid", 'utf8');
+  var themeFile = fs.readFileSync("layout/theme.liquid", 'utf8');
 
   if (themeFile.includes(`<script src="{{ '${name}.js' | asset_url }}"></script>`)) {
     log(`[SKIP] - ${name}.js script tag already added to theme.liquid`, 'error');
@@ -48,7 +48,7 @@ addJsScriptTagToThemeLiquid = async function (name) {
   else {
     themeFile = themeFile.replace('</head>', `<script src="{{ '${name}.js' | asset_url }}" defer="defer"></script>\n</head>`);
 
-    fs.writeFileSync('theme/layout/theme.liquid', themeFile);
+    fs.writeFileSync('layout/theme.liquid', themeFile);
 
     log(`[ADDED] - ${name}.js script tag added to theme.liquid`, 'success');
   }
@@ -57,7 +57,7 @@ addJsScriptTagToThemeLiquid = async function (name) {
 // for user prompt(y/n) => add css style tag to theme.liquid
 addJsStyleTagToThemeLiquid = async function (name) {
 
-  var themeFile = fs.readFileSync("theme/layout/theme.liquid", 'utf8');
+  var themeFile = fs.readFileSync("layout/theme.liquid", 'utf8');
 
   if (themeFile.includes(`<style>{% render '${name}.css' %}</style>`)) {
     log(`[SKIP] - ${name}.css style tag already added to theme.liquid`, 'error');
@@ -65,37 +65,10 @@ addJsStyleTagToThemeLiquid = async function (name) {
   else {
     themeFile = themeFile.replace('</head>', `<style>{% render '${name}.css' %}</style>\n</head>`);
 
-    fs.writeFileSync('theme/layout/theme.liquid', themeFile);
+    fs.writeFileSync('layout/theme.liquid', themeFile);
 
     log(`[ADDED] - ${name}.css style tag added to theme.liquid`, 'success');
   }
-}
-
-// move shopify theme folders and files to the new 'theme' folder
-moveThemeFoldersAndFiles = function () {
-
-  let foldersAndFilesToMove = [
-    'assets',
-    'config',
-    'layout',
-    'locales',
-    'sections',
-    'snippets',
-    'templates',
-    '.shopifyignore',
-    'config.yml',
-  ]
-
-  foldersAndFilesToMove.forEach(name => {
-
-    if (fs.existsSync('./' + name)) {
-      fs.renameSync('./' + name, './theme/' + name);
-      log('[MOVED] - ' + name + ' moved successfully', 'success')
-    }
-    else {
-      log('[ERROR - SKIP] - ' + name + ' is missing', 'error')
-    }
-  });
 }
 
 // create all necessary files
@@ -164,7 +137,7 @@ createFiles = async function (configYml) {
       name: `.gitignore`, content: `.gitignore-contentTemplateVariable`
     },
     {
-      name: `theme/.shopifyignore`, content: `.shopifyignore-contentTemplateVariable`
+      name: `.shopifyignore`, content: `.shopifyignore-contentTemplateVariable`
     },
     {
       name: `.stylelintignore`, content: `.stylelintignore-contentTemplateVariable`
@@ -225,7 +198,7 @@ dev:
 // create all necessary folders
 createFolders = async function () {
 
-  const folders = ['theme', 'js', 'css', 'css/defs', 'css/partials', 'css/pages', 'css/sections', 'js/partials', 'js/pages', 'js/sections', 'js/helpers'];
+  const folders = ['js', 'css', 'css/defs', 'css/partials', 'css/pages', 'css/sections', 'js/partials', 'js/pages', 'js/sections', 'js/helpers'];
 
   folders.forEach(folder => {
     if (!fs.existsSync('./' + folder)) {
@@ -258,8 +231,6 @@ init = async function () {
   (await question("\n(y/n) - Create all folders required? ") == 'y') ? await createFolders() : null;
 
   (await question("\n(y/n) - Create all necessary files for DEV? ") == 'y') ? await createFiles() : null;
-
-  (await question("\n(y/n) - Move all theme folders & files to dir 'theme'? ") == 'y') ? await moveThemeFoldersAndFiles() : null;
 
   (await question("\n(y/n) - Add 'bundle.js' to theme.liquid? ") == 'y') ? await addJsScriptTagToThemeLiquid('bundle') : null;
 

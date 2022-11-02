@@ -52,7 +52,7 @@ module.exports = {
     },
     // output
     output: {
-        path: path.resolve(__dirname, './theme/snippets'),
+        path: path.resolve(__dirname, './snippets'),
         publicPath: '/',
         filename: '[name].js.liquid',
     },
@@ -114,7 +114,7 @@ module.exports = {
         // replace media queries variables in css files and liquid variables in js&css files
         new ReplaceInFileWebpackPlugin([
             {
-                dir: 'theme/snippets',
+                dir: 'snippets',
                 test: [/\.css.liquid$/, /\.js.liquid/],
                 rules: [
                     // for liquid variables in js&css files
@@ -135,6 +135,7 @@ module.exports = {
         new CopyPlugin({
             patterns: [
                 {
+                    noErrorOnMissing: true,
                     from: "components/**/*.liquid",
                     to: "../sections/[name].liquid",
                     transform(content, path) {

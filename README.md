@@ -39,7 +39,6 @@ Each component implements a base class 'sectionClass', which implements some ext
     <summary> Here's why you should use it use it </summary>
     &nbsp;  
 
-* Separation of theme files nad DEV files to 'src' & 'theme' dir.
 * Guided 'config.yml' creation.
 * Auto adding 'Bundle.js' & bundle.css' to theme.liquid.
 * [Shopify-Frontend-Helper](https://github.com/osiset/Shopify-Frontend-Helper) already baked-in.

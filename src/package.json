@@ -4,14 +4,14 @@
   "description": "",
   "scripts": {
     "build": "webpack --mode production",
-    "watch": "concurrently \"cd ./theme && theme watch --env=dev\" \"webpack --watch --mode development\"",
+    "watch": "concurrently \"theme watch --env=dev\" \"webpack --watch --mode development\"",
     "lint": "eslint js/**/* && stylelint 'css/**/*.scss'",
     "lint:fix": "eslint js/**/* --fix && stylelint 'css/**/*.scss' --fix",
     "section": "cd ./js && cd ./helpers && node createSection",
     "test": "env TS_NODE_PROJECT=\"tsconfig.testing.json\" mocha",
-    "themeget": "cd ./theme && theme get --env=dev",
-    "themedeploy": "cd ./theme && theme deploy --env=dev",
-    "themeopen": "cd ./theme && theme open --env=dev"
+    "themeget": "theme get --env=dev",
+    "themedeploy": "theme deploy --env=dev",
+    "themeopen": "theme open --env=dev"
   },
   "repository": {
     "type": "git",
