@@ -55,7 +55,6 @@ Each component implements a base class 'sectionClass', which implements some ext
         * Section elements as html and as objects (for elements with 'id' attr).
         * Section refresh function (see Shopify's [section rendering api](https://shopify.dev/api/section-rendering/).
         * Section elements refresh function (see shopify [section rendering api](https://shopify.dev/api/section-rendering/).
-        * Life cycle events - onSectionReady/onRefreshFinish.
         * Access to all sections from the 'window.sections' array - allowing to run section specific functions - for example: sections[sectionName].refresh().
 
 

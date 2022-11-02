@@ -1,7 +1,3 @@
-// base section class for components
-import sectionClass from './helpers/sectionClass';
-window.$sectionClass = sectionClass;
-
 // SFA - https://github.com/osiset/Shopify-Frontend-Helper
 // import * as SFA from 'shopify-frontend-api';
 // window.SFA = SFA;

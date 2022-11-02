@@ -1,7 +1,6 @@
-
-
 // base class for all created components
 export default class sectionClass {
+    
     constructor(name, id) {
 
         // if section array doesn't exist => create it
@@ -30,12 +29,7 @@ export default class sectionClass {
         this.sectionElement = document.querySelector('#shopify-section-' + id);
 
         this.initElements();
-
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // section ready event (DOM ready; useful for jquery etc.)
-            this.onSectionReady();
-        }.bind(this));
+     
     };
 
     // init elements array for the section
@@ -57,10 +51,6 @@ export default class sectionClass {
             // set the element as a property on section class
             this[element.id] = element;
         });
-    }
-
-    // section init finish event
-    onSectionReady = function () {
     }
 
     // section refresh finish event
@@ -90,4 +80,3 @@ export default class sectionClass {
             })
     }
 }
-
