@@ -34,6 +34,7 @@ addFileToFileArray = async function (folder, fileName) {
   // if component files - replace comp name with call for var compName + escape character '\'
   if (fileName == "component.liquid" || fileName == "component.scss" || fileName == "component.ts" || fileName == "component.json") {
     content = content.replace(/compName/g, '\\\${name}');
+    content = content.replace(/compFormattedName/g, '\\\${formattedName}');
   }
 
   filesArray.push({
@@ -62,6 +63,8 @@ copyToolboxToDist = async function () {
   }
   // copy toolbox.config.js => dist/toolbox.js
   fs.copyFileSync("toolbox.config.js", "dist/toolbox.js");
+  //make sure (as much as you can - i.e. win vs Unix [POSIX] ) it's executable
+  fs.chmodSync("dist/toolbox.js", 0o755 )
 
   replaceTemplatesVariableWithContent();
 };

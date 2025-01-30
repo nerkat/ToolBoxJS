@@ -41,7 +41,6 @@ Each component implements a base class 'sectionClass', which implements some ext
 
 * Guided 'config.yml' creation.
 * Auto adding 'Bundle.js' & bundle.css' to theme.liquid.
-* [Shopify-Frontend-Helper](https://github.com/osiset/Shopify-Frontend-Helper) already baked-in.
 * Components framework:
     * Create new components from the CLI.
     * Auto adding new components translation keys to scheme.
@@ -127,82 +126,6 @@ To use toolbox.js in your Shopify project, simply:
     ```css
     @import '../node_modules/slick-carousel/slick/slick.css';
    ```
-## Using SFA for Shopify API interactions
-1. Add JS import in 'libs.js'
-   
-    ```javascript
-    import * as SFA from 'shopify-frontend-api';
-    window.SFA = SFA;
-    ```
-2. use anywhere in the js
-    ```javascript
-    SFA.Cart.get().then(function (cart) {
-        console.log(cart);
-    }
-    ```
-   <details>
-    <summary> All API calls </summary>
-    &nbsp;  
-
-     ```javascript
-    // Get the cart
-    const cart = await SFA.Cart.get();
-
-    // Add a single item
-    const cart = await SFA.Cart.add({ id: 20909233, quantity: 1, properties: { } });
-
-    // Add multiple items one-by-one
-    const cart = await SFA.Cart.add([
-    { id: 20909233, quantity: 1, properties: { } },
-    { id: 43243244, quantity: 1, properties: { special: true } },
-    ]);
-
-    // Remove item
-    const cart = await SFA.Cart.remove(id);
-
-    // Remove item by line
-    const cart = await SFA.Cart.removeByLine(2);
-
-    // Update an item
-    const cart = await SFA.Cart.update({ 3839983: 3, 3893983: 1 });
-
-    // Update items quantities by line
-    const cart = await SFA.Cart.update([1, 3, 4]);
-
-    // Clear cart
-    await SFA.Cart.clear();
-
-    // Add a cart note
-    const cart = await SFA.Cart.note('Hey!');
-
-    // Add attributes
-    const cart = await SFA.Cart.attributes({ 'Test': true });
-
-    // Get product
-    const product = await SFA.Product.get('some-handle');
-
-    // Get collection
-    const collection = await SFA.Collection.get('some-handle');
-
-    // Get collection products
-    const products = await SFA.Collection.getProducts('some-handle');
-
-    // Get checkout
-    const checkout = await SFA.Checkout.get();
-
-    // Apply and verify a discount
-    const code = 'LD287';
-    await SFA.Checkout.applyDiscount(code);
-    const result = await SFA.Checkout.verifyDiscount(code);
-
-    if (!result) {
-        console.log('Discount failed, not a good code');
-    }
-
-    console.log(result.discount); // Returns how much discount, and it worked!
-    ```
-    </details>
-
 
 ## Using media-query-variable
 * Variables are configured in '_variables.css' and available anywhere in the CSS/SCSS 
@@ -265,6 +188,22 @@ If you have a suggestion that would make this better, please fork the repo and c
 
 
 See the [open issues](https://github.com/sounds-good-agency/shopify-toolbox/issues) for a full list of proposed features (and known issues).
+
+## How to publish
+
+Publish process is automated with changesets.
+
+Whenever you are done with changes, you should run `npx changeset` locally which lets you pick affected packages and how serious the change is (major, minor, patch) and then put in summary of the change.
+
+This process will create a file in .changesets folder with generated name. You can edit the file and add more details about the change. In the end this will be added to CHANGELOG.md so it's good to describe it for others.
+
+Small changes can be pushed directly to `master`, but for something bigger go with PR.
+
+There is a Github action configured that runs after commit to the `master`. Based on existing `.changesets` files, it will create **Next release** PR summarizing all changes and picking proper version. This PR is automatically updated whenever you push new changes to `master`.
+
+After the **Next release** PR is merged, it will automatically build affected packages and publish them to NPM.
+
+
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 

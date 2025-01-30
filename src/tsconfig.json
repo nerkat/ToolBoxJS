@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2015",
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "declaration": false,
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "removeComments": true,
+    "allowJs": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true, // Enable decorator support
+    "emitDecoratorMetadata": true, // Emit decorator metadata for reflection
+    "typeRoots": [
+      "./ts/types",
+    ],
+    "noEmit": false,
+    "emitDeclarationOnly": false,
+    "outDir": "./dist"
+  },
+  "include": [
+    "./components/**/*",
+    "./ts/**/*",
+    "./ts/*",
+    "@types/*"
+  ]
+}

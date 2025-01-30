@@ -1,0 +1,45 @@
+name: Build and Commit
+
+on:
+  push:
+    branches: [ main, staging, live ]
+  pull_request:
+    branches: [ main, staging, live ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure Git
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+    - name: Pull latest changes
+      run: git pull origin \${{ github.ref }} --rebase
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14' # Adjust this to your project's node version
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build
+      run: npm run build
+      # If your build script is defined in your package.json, this will execute it
+
+    - name: Commit changes
+      run: |
+        git add .
+        git commit -m "Automated build commit" || echo "No changes to commit"
+
+    - name: Push changes
+      env:
+        GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git push origin HEAD:\${{ github.ref }}

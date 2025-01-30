@@ -1,10 +1,13 @@
-.compName-section{ 
-    .compName-title{
+:host {
+    h1 {
         font-size: '{{ section.settings.fontsize_title | append: "px" }}';
         line-height: '{{ section.settings.lineheight_title | append: "px" }}';
-    }
-
-    .compName-image{
 
     }
+
+    button {
+        font-size: '{{ section.settings.fontsize_button | append: "px" }}';
+        line-height: '{{ section.settings.lineheight_button | append: "px" }}';
+    }
+
 }

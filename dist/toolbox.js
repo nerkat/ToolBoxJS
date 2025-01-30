@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // include node fs module
 var fs = require('fs');
 
@@ -72,102 +74,106 @@ addJsStyleTagToThemeLiquid = async function (name) {
 }
 
 // create all necessary files
-createFiles = async function (configYml) {
+createFiles = async function () {
 
 
   // liquid content
   const liquidContent = `\`
-<div class="\${name}-section" id="\${name}-{{ section.id }}">
-    <h1 class="\${name}-title">{{ section.settings.title }}</h1>
-    <img class="\${name}-image" src="{{ section.settings.image | img_url: '400x' }}">
-</div>\``;
+<h1>{{ section.id }}</h1>
+<h2>{{ section.settings.title }}</h2>
+\``;
 
   // scss content
   const scssContent = `\`
-.\${name}-section{ 
-    .\${name}-title{
+:host {
+    h1 {
         font-size: '{{ section.settings.fontsize_title | append: "px" }}';
         line-height: '{{ section.settings.lineheight_title | append: "px" }}';
-    }
-
-    .\${name}-image{
 
     }
+
+    button {
+        font-size: '{{ section.settings.fontsize_button | append: "px" }}';
+        line-height: '{{ section.settings.lineheight_button | append: "px" }}';
+    }
+
 }\``;
 
   // typescript content
   const tsContent = `\`
-// needed for css compilation
-// import './\${name}.scss';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 
-// base section class
-// const sectionClass = window['$sectionClass'];
+// Import CSS and HTML files
+import styles from './\${formattedName}.scss';
 
-// create section class from base
-// const \${name}SectionId = "'{{ section.id }}'";
+class \${formattedName} extends LitElement {
 
-// init section class
-// const \${name}Section = new sectionClass('\${name}Section', \${name}SectionId);
+  // Use unsafeCSS to apply the imported styles
+  static styles = css\\\`\\\${unsafeCSS(styles)}\\\`;
 
-// section ready event - DOMContentLoaded / ready for jquery
-// \${name}Section.onSectionReady = () => {
-    // code goes here
-// };
+  render() {
+    // Use unsafeHTML to inject the HTML template content
+    return html\\\`<!-- PLACEHOLDER_TEMPLATE -->\\\`;
+  }
 
-// refresh finish event
-// \${name}Section.onRefreshFinish = function (htmlElement) {
-//     console.log('onRefreshFinish - \${name}Section:\\\n' + htmlElement.outerHTML);
-// }
+}
 
-// call this to refresh the section - reload html from shopify
-// \${name}Section.refresh();\``;
+customElements.define('my-component', \${formattedName});
+export default \${formattedName};\``;
 
   // scheme content
-  const schemeContent = `\`
-{
-    "name": "t:sections.\${name}.name",
-    "settings": [
-        {
-            "type": "text",
-            "id": "title",
-            "label": "t:sections.\${name}.settings.title",
-            "default": "\${name} Title"
-        },
-        {
-            "type": "range",
-            "id": "fontsize_title",
-            "label": "t:sections.\${name}.settings.fontsize_title",
-            "min": 6,
-            "max": 60,
-            "step": 1,
-            "unit": "px",
-            "default": 16
-        },
-        {
-            "type": "range",
-            "id": "lineheight_title",
-            "label": "t:sections.\${name}.settings.lineheight_title",
-            "min": 6,
-            "max": 60,
-            "step": 1,
-            "unit": "px",
-            "default": 16
-        },
-        {
-            "type": "image_picker",
-            "id": "image",
-            "label": "t:sections.\${name}.settings.image"
-        }
-    ],
-    "presets": [
-        {
-            "name": "t:sections.\${name}.name",
-            "category": "text"
-        }
-    ]
-}\``;
+  const schemeContent = `\`component.json-contentTemplateVariable\``;
 
   let filesToCreate = [
+    {
+      name: '.github/workflows/build.yml', content: `
+name: Build and Commit
+
+on:
+  push:
+    branches: [ main, staging, live ]
+  pull_request:
+    branches: [ main, staging, live ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure Git
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+    - name: Pull latest changes
+      run: git pull origin \${{ github.ref }} --rebase
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14' # Adjust this to your project's node version
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build
+      run: npm run build
+      # If your build script is defined in your package.json, this will execute it
+
+    - name: Commit changes
+      run: |
+        git add .
+        git commit -m "Automated build commit" || echo "No changes to commit"
+
+    - name: Push changes
+      env:
+        GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git push origin HEAD:\${{ github.ref }}
+`
+    },
     {
       name: '.mocharc.json', content: `
 {
@@ -185,40 +191,84 @@ createFiles = async function (configYml) {
     },
     {
       name: '.babelrc', content: `
+
 {
-    "presets": ["@babel/preset-env", "@babel/preset-typescript"]
+    "presets": ["@babel/preset-env", "@babel/preset-typescript"],
+    "comments": false
 }`
     },
     {
-      name: 'tsconfig.testing.json', content: `
+      name: 'tsconfig.json', content: `
 {
-    "compilerOptions": {
-      "module": "commonjs",
-      "target": "es2015",
-      "lib": ["es2017"],
-      "declaration": false,
-      "noImplicitAny": false,
-      "removeComments": true,
-      "inlineSourceMap": true,
-      "moduleResolution": "node",
-    }
-  }`
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2015",
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "declaration": false,
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "removeComments": true,
+    "allowJs": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true, // Enable decorator support
+    "emitDecoratorMetadata": true, // Emit decorator metadata for reflection
+    "typeRoots": [
+      "./ts/types",
+    ],
+    "noEmit": false,
+    "emitDeclarationOnly": false,
+    "outDir": "./dist"
+  },
+  "include": [
+    "./components/**/*",
+    "./ts/**/*",
+    "./ts/*",
+    "@types/*"
+  ]
+}`
     },
     {
-      name: 'js/helpers/createSection.js', content: `
+      name: 'js/helpers/track-liquid-loader.js', content: `
+const path = require('path');
+const fs = require('fs');
+
+module.exports = function (source) {
+  // Get the current TypeScript file's path and base name
+  const tsFilePath = this.resourcePath;
+  const componentName = path.basename(tsFilePath, path.extname(tsFilePath));
+
+  // Find the corresponding .liquid file in the same directory
+  const liquidFilePath = path.join(path.dirname(tsFilePath), '\${componentName}.liquid');
+
+  // Check if the .liquid file exists and add it as a dependency
+  if (fs.existsSync(liquidFilePath)) {
+    this.addDependency(liquidFilePath);
+  }
+
+  return source; // Return the original TypeScript source
+};
+`
+    },
+    {
+      name: 'js/helpers/createComp.js', content: `
+
+
 // node script to create new section component
 
 // include node fs module
 var fs = require('fs');
+var argv = require('minimist')(process.argv.slice(2));
 
-// name var
-var name = process.argv[2].replace('-', '_');
+var formattedName = argv._[0] + 'Comp';
 
 // color console func
 log = async function (text, mode) {
   switch (mode) {
     case 'success':
-    mode = '[32m'; // green
+      mode = '[32m'; // green
       break;
     case 'error':
       mode = '[31m'; // red
@@ -237,6 +287,7 @@ log = async function (text, mode) {
   console.log(mode + text + '[0m');
 }
 
+
 // create component files
 createComponent = async function () {
   // create 'components' folder if does not exist
@@ -245,7 +296,7 @@ createComponent = async function () {
   }
 
   // create the COMP folder inside 'components' folder
-  fs.mkdirSync('../../components/' + name);
+  fs.mkdirSync('../../components/' + formattedName);
 
   // liquid content
   const liquidContent = ${ liquidContent };
@@ -254,48 +305,22 @@ createComponent = async function () {
   const scssContent = ${ scssContent };
 
   // typescript content
-  const tsContent = ${ tsContent };
+  const jsContent = ${ tsContent };
 
-  // schema content
-  const schemeContent = ${ schemeContent };
-
-  // create liquid file
-  fs.appendFileSync('../../components/' + name + '/' + name + '.liquid', liquidContent)
-  log('[ADDED] - ' + name + '.liquid' + ' created successfully', 'success');
-
-  // create scss file
-  fs.appendFileSync('../../components/' + name + '/' + name + '.scss', scssContent)
-  log('[ADDED] - ' + name + '.scss' + ' created successfully', 'success');
 
   // create ts file
-  fs.appendFileSync('../../components/' + name + '/' + name + '.ts', tsContent);
-  log('[ADDED] - ' + name + '.ts' + ' created successfully', 'success');
+  fs.appendFileSync('../../components/' + formattedName + '/' + formattedName + '.ts', jsContent);
+  log('[ADDED] - ' + formattedName + '.ts' + ' created successfully', 'success');
 
-  // create json file
-  fs.appendFileSync('../../components/' + name + '/' + name + '.json', schemeContent);
-  log('[ADDED] - ' + name + '.json' + ' created successfully', 'success');
-}
+  // create liquid file
+  fs.appendFileSync('../../components/' + formattedName + '/' + formattedName + '.liquid', liquidContent);
+  log('[ADDED] - ' + formattedName + '.liquid' + ' created successfully', 'success');
 
-// and translation keys
-addTranslationKeys = async function () {
+  // create scss file
+  fs.appendFileSync('../../components/' + formattedName + '/' + formattedName + '.scss', scssContent);
+  log('[ADDED] - ' + formattedName + '.scss' + ' created successfully', 'success');
 
-  const fileName = '../../locales/en.default.schema.json';
-  const file = require(fileName);
-
-  file.sections[name] = {
-    "name": name,
-    "settings": {
-      "title": name + " Title",
-      "fontsize_title": name + " Title Font-Size",
-      "lineheight_title": name + " Line-Height",
-      "image": name + " Image"
-    }
-  };
-
-  await fs.writeFileSync(fileName, JSON.stringify(file, null, 2));
-  log('[ADDED] - ' + name + ' section' + ' translation keys added successfully', 'success');
-
-}
+ }
 
 // get OS specific command path 
 function getCommandLine() {
@@ -313,34 +338,145 @@ init = async function () {
 
   // open liquid file in vscode
   var exec = require('child_process').exec;
-  exec(getCommandLine() + '../../components/' + name + '/' + name + '.liquid');
+  exec(getCommandLine() + '../../components/' + formattedName + '/' + formattedName + '.liquid');
 
   // component files ready
-  log('[CREATED] - ' + name + ' section' + ' files successfully created', 'info');
-
-  // npm run watch
-  var npmLog = exec('npm run watch');
-
-  await new Promise(resolve => {
-    npmLog.stdout.on('data', function (data) {
-      // log 'npm run watch' output to console
-      if (data.length > 4) {
-        console.log(data);
-
-        // wait for theme watch to be ready before updating translation keys
-        data.includes('[dev]') ? resolve() : null;
-      }
-    });
-  });
-
-  await addTranslationKeys();
-
-  // component uploaded to shopify - and ready to use in customizer
-  log('[UPLOADED] - ' + name + ' section' + ' was successfully uploaded to Shopify', 'info');
+  log('[CREATED] - ' + formattedName + ' section' + ' files successfully created', 'info');
 
 };
 
 init();`
+    },
+    {
+      name: 'js/helpers/sectionUtils.js', content: `
+import './loader.component'; // Loader Component
+// sectionUtils.js
+
+// Global function to refresh a section by ID
+export async function refreshSection(sectionId) {
+  // show loader
+  const sectionElement = document.querySelector('#shopify-section-\${sectionId}');
+  sectionElement.style.position = 'relative';
+  let loader = document.createElement('loading-spinner');
+  sectionElement.appendChild(loader);
+
+  try {
+    const url = '/?section_id=\${sectionId}';
+    const response = await fetch(url, { method: 'GET' });
+    if (!response.ok) throw new Error('Failed to fetch section: \${response.statusText}');
+
+    const sectionHtml = await response.text();
+    if (!sectionElement) throw new Error('Section with ID \${sectionId} not found on the page.');
+
+    sectionElement.innerHTML = '';
+    sectionElement.innerHTML = sectionHtml;
+    console.log('Section \${sectionId} refreshed successfully.');
+  } catch (error) {
+    console.error("Error refreshing section:", error);
+  }
+
+}
+`
+    },
+    {
+      name: 'js/helpers/DynamicCssRenderPlugin.js', content: `
+const path = require('path');
+
+module.exports = function(source) {
+  // Only process TypeScript or JavaScript files with the placeholder
+  if (this.resourcePath.endsWith('.ts') || this.resourcePath.endsWith('.js')) {
+    // Extract the file name without extension to create the CSS render tag
+    const fileName = path.basename(this.resourcePath, path.extname(this.resourcePath));
+    const cssRenderTag = \`'{% render '\${fileName}.css' %}'\`;
+
+    // Replace the placeholder in the source code
+    return source.replace('[WillRenderCompScssSnippetHere]', cssRenderTag);
+  }
+
+  // Return source unmodified if no replacement was done
+  return source;
+};
+`
+    },
+    {
+      name: 'js/helpers/inject-html-loader.js', content: `
+const fs = require('fs');
+const path = require('path');
+
+module.exports = function (source) {
+  const componentDir = path.dirname(this.resourcePath);
+  const componentName = path.basename(this.resourcePath, path.extname(this.resourcePath));
+
+  // Dynamically locate the liquid file
+  const liquidPath = path.join(componentDir, '\${componentName}.liquid');
+
+  // Load liquid content or default to an empty string if not found
+  const liquidContent = fs.existsSync(liquidPath) ? fs.readFileSync(liquidPath, 'utf-8') : '';
+
+  // Inject the liquid by replacing the placeholder
+  return source.replace('<!-- PLACEHOLDER_TEMPLATE -->', liquidContent);
+};
+`
+    },
+    {
+      name: 'js/helpers/fetchErrorHandle.js', content: `
+import '@shoelace-style/shoelace/dist/components/alert/alert.js';
+import '@shoelace-style/shoelace/dist/components/progress-bar/progress-bar.js';
+
+if (!window.fetch.isWrapped) {
+    let activeRequests = 0;
+
+    // Create and style the loading bar
+    const loadingBar = document.createElement('sl-progress-bar');
+    loadingBar.style.position = 'fixed';
+    loadingBar.style.top = '0';
+    loadingBar.style.left = '0';
+    loadingBar.style.width = '100%';
+    loadingBar.style.zIndex = '1000';
+    loadingBar.style.display = 'none'; // Initially hidden
+    loadingBar.indeterminate = true; // Show an indeterminate progress bar
+    document.body.appendChild(loadingBar);
+
+    const originalFetch = window.fetch;
+
+    window.fetch = async function (...args) {
+        // Show the loading bar at the start of each fetch request
+        if (activeRequests === 0) loadingBar.style.display = 'block';
+        activeRequests += 1;
+
+        try {
+            const response = await originalFetch(...args);
+
+            if (!response.ok) {
+                throw new Error('HTTP error! Status: \${response.status}');
+            }
+
+            return response;
+        } catch (error) {
+            showErrorToast(error.message); // Show the error toast
+            throw error;
+        } finally {
+            // Hide the loading bar after all requests are complete
+            activeRequests -= 1;
+            if (activeRequests === 0) loadingBar.style.display = 'none';
+        }
+    };
+
+    // Flag to ensure fetch is only wrapped once
+    window.fetch.isWrapped = true;
+}
+
+// Helper function to create and show the toast
+function showErrorToast(message) {
+    const alert = document.createElement('sl-alert');
+    alert.variant = 'danger';
+    alert.duration = 5000; // Display for 5 seconds
+    alert.innerHTML = '<strong>Error:</strong> \${message}';
+
+    document.body.appendChild(alert); // Add the toast to the DOM
+    alert.toast(); // Trigger the toast to show
+}
+`
     },
     {
       name: `.browserslistrc`, content: `
@@ -348,23 +484,18 @@ IE 11`
     },
     {
       name: `js/theme.js`, content: `
+
 import '../css/theme.css';
 
+// import './globals';
+
 import './libs';
+import './helpers/fetchErrorHandle.js';
 
 // import './partials/navigation';`
     },
     {
       name: `js/libs.js`, content: `
-// base section class for components
-import sectionClass from './helpers/sectionClass';
-window.$sectionClass = sectionClass;
-
-// SFA - https://github.com/osiset/Shopify-Frontend-Helper
-// import * as SFA from 'shopify-frontend-api';
-// window.SFA = SFA;
-
-
 // jquery - https://jquery.com
 // import * as jquery from 'jquery';
 // window.$ = jquery;
@@ -373,7 +504,18 @@ window.$sectionClass = sectionClass;
 
 // slick carousel - https://kenwheeler.github.io/slick/
 // import * as slick from 'slick-carousel';
-// window.slick = slick;
+// window.slick = slick;`
+    },
+    {
+      name: `js/globals.js`, content: `
+window.globals = {
+    
+    // declare global functions here - to be accessed from the 'globals' object
+    // init: function() {
+        // console.log('global init');
+    // }
+
+};
 `
     },
     {
@@ -478,101 +620,86 @@ module.exports = ReplaceInFilePlugin;
         `
     },
     {
-      name: `js/helpers/sectionClass.js`, content: `
+      name: `js/helpers/loader.component.js`, content: `
 
+class LoadingSpinner extends HTMLElement {
+    constructor() {
+        super();
+        const shadow = this.attachShadow({ mode: 'open' });
 
-// base class for all created components
-export default class sectionClass {
-    constructor(name, id) {
+        const wrapper = document.createElement('div');
+        wrapper.setAttribute('class', 'lds-ring');
+        wrapper.innerHTML = '<div></div><div></div><div></div><div></div>';
 
-        // if section array doesn't exist => create it
-        if (!window.sections) {
-            window.sections = [];
-        }
-
-        // add section to array
-        // if exist => convert to an array holding all instances
-        if (window.sections[name]) {
-            if (Array.isArray(window.sections[name])) {
-                window.sections[name] = [...window.sections[name], this]
+        const style = document.createElement('style');
+        style.textContent = \`
+            :host {
+                background: #ffffff80;
+                position: absolute;
+                top: 0;
+                right: 0;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                display: flex;
+                height: 100%;
+                justify-content: center;
+                align-items: center;
             }
-            else {
-                window.sections[name] = [window.sections[name], this]
+            
+            .lds-ring,
+            .lds-ring div {
+            box-sizing: border-box;
             }
-        }
-        else {
-            window.sections[name] = this;
-        }
 
-        //section id
-        this.id = id;
+            .lds-ring {
+            display: inline-block;
+            position: relative;
+            width: 40px;
+            height: 40px;
+            }
 
-        // section element
-        this.sectionElement = document.querySelector('#shopify-section-' + id);
+            .lds-ring div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            margin: 4px;
+            border: 4px solid currentColor;
+            border-radius: 50%;
+            animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: currentColor transparent transparent transparent;
+            }
 
-        this.initElements();
+            .lds-ring div:nth-child(1) {
+            animation-delay: -0.45s;
+            }
 
+            .lds-ring div:nth-child(2) {
+            animation-delay: -0.3s;
+            }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            // section ready event (DOM ready; useful for jquery etc.)
-            this.onSectionReady();
-        }.bind(this));
-    };
+            .lds-ring div:nth-child(3) {
+            animation-delay: -0.15s;
+            }
 
-    // init elements array for the section
-    initElements = function () {
-
-        // set element array from all elements with id attr
-        this.elements = this.sectionElement.querySelector('div').querySelectorAll('[id]');
-
-        // to use inside foreach=>function
-        let self = this;
-
-        this.elements.forEach((element) => {
-
-            // set refresh function per element
-            element.refresh = function () {
-                self.refresh(element.id);
-            };
-
-            // set the element as a property on section class
-            this[element.id] = element;
-        });
-    }
-
-    // section init finish event
-    onSectionReady = function () {
-    }
-
-    // section refresh finish event
-    onRefreshFinish = function (sectionHtmlString) {
-    }
-
-    // refresh section from shopify section-rendering API => replacing the section element in the DOM
-    refresh = function (elementID) {
-        fetch(window.location.pathname + "?section_id=" + this.id)
-            .then(res => res.text())
-            .then(htmlString => {
-                let newDom = document.createElement('div');
-                if (elementID) {
-                    let element = this.sectionElement.querySelector('#' + elementID);
-                    newDom.innerHTML = htmlString.trim();
-                    newDom = newDom.querySelector('#' + elementID);
-                    element.parentNode.replaceChild(newDom, element);
-                } else {
-                    newDom.innerHTML = htmlString.trim();
-                    this.sectionElement.parentNode.replaceChild(newDom, this.sectionElement);
+            @keyframes lds-ring {
+                0% {
+                    transform: rotate(0deg);
                 }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        \`;
 
-                // reset comp
-                this.sectionElement = document.querySelector('#shopify-section-' + this.id);
-                this.initElements();
-                this.onRefreshFinish(newDom);
-            })
+        shadow.appendChild(style);
+        shadow.appendChild(wrapper);
     }
 }
 
-`
+customElements.define('loading-spinner', LoadingSpinner);`
     },
     {
       name: `js/partials/navigation.js`, content: `
@@ -603,22 +730,30 @@ export default class sectionClass {
     },
     {
       name: `css/theme.css`, content: `
-  /* libs */
-  /* @import '../node_modules/slick-carousel/slick/slick.css'; */
+/* libs */
+/* @import '../node_modules/slick-carousel/slick/slick.css'; */
 
-  /* Definitions */
+/* Definitions */
 
-  @import './defs/_variables.css';
-  
-  /* Partials */
-  
-   /* @import './partials/_typo.css'; */
-   /* @import './partials/_utils.css'; */
-  
-  /* Pages */
-  
-   /* @import './pages/_cart.css'; */
-    `
+@import './defs/_variables.css';
+@import '../node_modules/@shoelace-style/shoelace/dist/themes/dark.css';
+
+
+/* Partials */
+
+/* @import './partials/_typo.css'; */
+/* @import './partials/_utils.css'; */
+
+/* Pages */
+
+/* @import './pages/_cart.css'; */`
+    },
+    {
+      name: `@types/styles.d.ts`, content: `
+declare module '*.scss' {
+  const content: string;
+  export default content;
+}`
     },
     {
       name: `.eslintignore`, content: `
@@ -689,7 +824,8 @@ js/vendor/
     {
       name: `.gitignore`, content: `
 config.yml
-node_modules/`
+node_modules/
+.vscode/`
     },
     {
       name: `.shopifyignore`, content: `
@@ -18080,19 +18216,20 @@ zip: build
     {
       name: `package.json`, content: `
 {
-  "name": "shopify-toolbox",
-  "version": "1.1.1",
-  "description": "",
+  "name": "@sga/toolbox",
+  "version": "2.0.0",
+  "description": "Toolbox for FE development using Shopify",
   "scripts": {
+    "start": "concurrently \\"shopify theme dev\\" \\"webpack --config webpack.multi.config.js --watch\\" \\"shopify theme open --development\\"",
     "build": "webpack --mode production",
     "watch": "concurrently \\"theme watch --env=dev\\" \\"webpack --watch --mode development\\"",
     "lint": "eslint js/**/* && stylelint 'css/**/*.scss'",
     "lint:fix": "eslint js/**/* --fix && stylelint 'css/**/*.scss' --fix",
-    "section": "cd ./js && cd ./helpers && node createSection",
+    "comp": "cd ./js && cd ./helpers && node createComp",
     "test": "env TS_NODE_PROJECT=\\"tsconfig.testing.json\\" mocha",
-    "themeget": "theme get --env=dev",
-    "themedeploy": "theme deploy --env=dev",
-    "themeopen": "theme open --env=dev"
+    "themepull": "shopify theme pull --development",
+    "themepush": "shopify theme push --development",
+    "themeopen": "shopify theme open --development"
   },
   "repository": {
     "type": "git",
@@ -18114,18 +18251,18 @@ zip: build
     "concurrently": "^7.1.0",
     "copy-webpack-plugin": "^11.0.0",
     "core-js": "^3.21.1",
-    "css-loader": "^6.7.1",
+    "css-loader": "^6.11.0",
     "cssnano": "^5.1.7",
     "eslint": "^8.12.0",
     "eslint-config-google": "^0.14.0",
     "glob": "^7.2.0",
-    "mini-css-extract-plugin": "^2.6.0",
+    "html-loader": "^5.1.0",
+    "mini-css-extract-plugin": "^2.9.2",
     "mocha": "^10.0.0",
-    "node-sass": "^7.0.1",
     "normalize.css": "^8.0.1",
-    "postcss": "^8.4.12",
+    "postcss": "^8.4.49",
     "postcss-css-variables": "^0.18.0",
-    "postcss-custom-media": "^8.0.0",
+    "postcss-custom-media": "^8.0.2",
     "postcss-discard-comments": "^5.1.1",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-import": "^14.1.0",
@@ -18134,29 +18271,47 @@ zip: build
     "postcss-preset-env": "^7.4.3",
     "postcss-scss": "^4.0.3",
     "sass": "^1.49.11",
-    "sass-loader": "^12.6.0",
+    "sass-loader": "^13.3.3",
     "string-replace-loader": "^3.1.0",
     "style-loader": "^3.3.1",
     "stylelint": "^14.14.0",
     "stylelint-config-standard": "^29.0.0",
     "stylelint-order": "^5.0.0",
     "stylelint-scss": "^4.2.0",
+    "ts-loader": "^9.5.1",
     "ts-node": "^10.9.1",
+    "tsconfig-paths-webpack-plugin": "^4.0.1",
     "typescript": "^4.8.4",
     "webpack": "^5.74.0",
-    "webpack-cli": "^4.9.2",
+    "webpack-cli": "^4.10.0",
     "webpack-remove-empty-scripts": "^0.8.0"
   },
   "dependencies": {
+    "@discolabs/custard-js": "^0.1.3",
+    "@hotwired/turbo": "^7.3.0",
+    "@shoelace-style/shoelace": "^2.18.0",
     "bourbon": "^7.2.0",
     "foundation-sites": "^6.7.4",
-    "jquery": "^3.6.1",
+    "jquery": "^3.6.4",
+    "lit": "^3.2.1",
+    "lit-scss-loader": "^2.0.1",
+    "magnific-popup": "^1.1.0",
+    "minimist": "^1.2.8",
+    "node-sass": "^9.0.0",
     "normalize-scss": "^7.0.1",
+    "qrcode": "^1.5.3",
     "rfs": "^9.0.6",
-    "shopify-frontend-api": "github:ohmybrew/Shopify-Frontend-Helper",
-    "slick-carousel": "^1.8.1"
-  }
-}`
+    "shoelace": "^0.1.0",
+    "shopify-api-js": "^1.0.6",
+    "slick-carousel": "^1.8.1",
+    "source-map-loader": "^4.0.1",
+    "spayd": "^3.0.3",
+    "vue-multiselect": "^2.1.7",
+    "webpack-merge": "^6.0.1"
+  },
+  "main": "postcss.config.js"
+}
+`
     },
     {
       name: `postcss.config.js`, content: `
@@ -18164,7 +18319,6 @@ module.exports = {
     plugins: {
         'postcss-import': {},
         'postcss-custom-media': {},
-        'postcss-css-variables': {},
         'postcss-nested': {},
         'postcss-discard-comments': { removeAll: true },
         autoprefixer: {},
@@ -18177,16 +18331,151 @@ module.exports = {
 };`
     },
     {
-      name: `webpack.config.js`, content: `
-
+      name: `webpack.css.config.js`, content: `
 const path = require('path');
 const glob = require('glob');
-var fs = require('fs');
-
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+// Dynamically get all .css and .scss files in css/assets
+const cssFiles = glob.sync(path.resolve(__dirname, 'css/assets/*.{css,scss}'));
+
+module.exports = {
+    entry: cssFiles.reduce((entries, file) => {
+        const name = path.basename(file, path.extname(file)); // Use filename as the entry key
+        entries[name] = file;
+        return entries;
+    }, {}),
+    output: {
+        path: path.resolve(__dirname, 'assets'), // Output directory for CSS files
+    },
+    module: {
+        rules: [
+            // CSS and SCSS files
+            {
+                test: /\.(css|scss)$/,
+                include: path.resolve(__dirname, 'css/assets'),
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            url: false,
+                        },
+                    },
+                    'postcss-loader',
+                    {
+                        loader: 'sass-loader', // Compiles SCSS to CSS
+                        options: {
+                            implementation: require('sass'),
+                            sourceMap: true,
+                        },
+                    },
+                ],
+            },
+        ],
+    },
+    plugins: [
+        new MiniCssExtractPlugin({
+            filename: 'style-[name].css', // Adds 'style-' prefix to each CSS file
+        }),
+    ],
+    resolve: {
+        extensions: ['.css', '.scss'],
+    },
+    mode: 'production', // or 'development' for debugging
+    optimization: {
+        minimize: true, // Enables minimization for production
+        runtimeChunk: false,
+        splitChunks: false, // Prevent Webpack from creating additional chunks
+    },
+    // Ignore .js files in the final output
+    performance: {
+        hints: false, // Disable performance hints to avoid output size warnings
+    },
+};
+
+// Webpack ignore emitted .js files
+module.exports.plugins.push({
+    apply: (compiler) => {
+        compiler.hooks.emit.tap('RemoveJsFiles', (compilation) => {
+            Object.keys(compilation.assets).forEach((asset) => {
+                if (asset.endsWith('.js')) {
+                    delete compilation.assets[asset];
+                }
+            });
+        });
+    },
+});
+`
+    },
+    {
+      name: `webpack.js.config.js`, content: `
+const path = require('path');
+const glob = require('glob');
+
+module.exports = {
+    // Dynamically get all .js and .ts files in js/assets
+    entry: glob.sync(path.resolve(__dirname, 'js/assets/*.{js,ts}')).reduce((entries, file) => {
+        const name = path.basename(file, path.extname(file)); // Use filename as the entry key
+        entries[name] = file;
+        return entries;
+    }, {}),
+    output: {
+        path: path.resolve(__dirname, 'assets'), // Output directory for JS/TS files
+        filename: 'script-[name].js', // Adds 'script-' prefix to each JS/TS file
+    },
+    module: {
+        rules: [
+            // Source map loader
+            {
+                test: /\.js$/,
+                enforce: "pre",
+                use: [
+                    {
+                        loader: "source-map-loader",
+                        options: {
+                            filterSourceMappingUrl: (url, resourcePath) => {
+                                if (/broker-source-map-url\.js$/i.test(url)) return false;
+                                if (/keep-source-mapping-url\.js$/i.test(resourcePath)) return "skip";
+                                return true;
+                            },
+                        },
+                    },
+                ],
+            },
+            // TypeScript loader
+            {
+                test: /\.tsx?$/,
+                exclude: /node_modules/,
+                use: 'ts-loader',
+            },
+            // JavaScript loader
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: ['babel-loader'],
+            },
+        ],
+    },
+    resolve: {
+        extensions: ['.js', '.ts', '.tsx'], // Allow importing without extensions
+    },
+    mode: 'production', // or 'development' for debugging
+    optimization: {
+        minimize: false,
+    },
+    devtool: 'source-map', // Generate source maps
+};
+`
+    },
+    {
+      name: `webpack.general.config.js`, content: `
+const webpack = require('webpack');
+const path = require('path');
+const glob = require('glob');
 const ReplaceInFileWebpackPlugin = require("./js/helpers/ReplaceInFileWebpackPluginCustom.js");
-const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
-const CopyPlugin = require("copy-webpack-plugin");
+var fs = require('fs');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 
 // needed to enable mediaQueries variables in comp scss
@@ -18202,12 +18491,16 @@ var result = str.match(regex);
 result.forEach(element => {
     let search = [element.split(/ (.*)/s)[0]];
     search = new RegExp(search, 'g');
+    let replace = element.split(/ (.*)/s)[1];
+    replace = replace.replace(/\\(/g, '').replace(/\\)/g, '')
+
 
     mediaQueriesArray.push({
         search: search,
-        replace: element.split(/ (.*)/s)[1]
+        replace: replace
     })
 });
+
 
 // patternToEntries - function to get all files from folder
 const patternToEntries = (pattern, suffix = '') => glob
@@ -18217,42 +18510,53 @@ const patternToEntries = (pattern, suffix = '') => glob
         [path.basename(val, path.extname(val)) + suffix]: val,
     }), {});
 
-
-// module exports
 module.exports = {
-    // entries
+    devtool: 'hidden-source-map',  // Enable source maps - without add source maps to the output file, it will be added dynamically with shopify asset pipe - {{my_script.js | asset_url | script_tag}}
     entry: {
         bundle: {
             import: './js/theme.js',
             filename: '../assets/[name].js'
         },
-        ...patternToEntries('./components/**/*.css', ''),
-        ...patternToEntries('./components/**/*.js', ''),
-        ...patternToEntries('./components/**/*.ts', ''),
+        ...patternToEntries('./components/**/*.ts', '')
     },
-    // output
+
     output: {
-        path: path.resolve(__dirname, './snippets'),
+        path: path.resolve(__dirname, './snippets'),  // Output to 'snippets' folder for compiled web components
         publicPath: '/',
-        filename: '[name].js.liquid',
     },
-    // module
+
     module: {
         rules: [
-            // typescript
             {
-                test: /\\.tsx?$/,
-                loader: 'babel-loader',
-            },
-            // javascript
-            {
-                test: /\\.(js)$/,
+                test: /\.tsx?$/,
                 exclude: /node_modules/,
-                use: ['babel-loader'],
+                use: [
+                    {
+                        loader: path.resolve('./js/helpers/track-liquid-loader.js'),  // Our custom dependency-tracking loader
+                    },
+                    {
+                        loader: 'ts-loader',  // Transpile TypeScript
+                        options: {
+                            compilerOptions: {
+                                sourceMap: true,  // Enable source maps for TypeScript
+                            },
+                        },
+                    },
+                    {
+                        loader: path.resolve('./js/helpers/inject-html-loader.js'),  // Our custom loader for HTML injection
+                    },
+                ],
+            },
+            {
+                test: /\.(css|scss)$/,
+                use: [
+                    'lit-scss-loader', // Compiles SCSS to CSS in Lit-style
+                    'sass-loader',     // Translates Sass to CSS
+                ],
             },
             // css
             {
-                test: /\\.(css)$/,
+                test: /\.(css)$/,
                 use: [
                     MiniCssExtractPlugin.loader,
                     {
@@ -18264,46 +18568,45 @@ module.exports = {
                     'postcss-loader',
                 ],
             },
-            // sass/scss
             {
-                test: /\\.(s(a|c)ss)$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    "css-loader",
-                    {
-                        loader: "sass-loader",
-                        options: {
-                            implementation: require("sass"),
-                            sourceMap: true,
-                            sassOptions: {
-                                outputStyle: "compressed",
-                            },
-                        },
-                    },
-                ],
+                test: /\.liquid$/,
+                use: 'html-loader'  // Allows importing HTML templates as modules
+            },
+            {
+                test: /\.(js)$/i,
+                exclude: /node_modules/,
+                use: ['babel-loader'],
             },
         ],
     },
+
     plugins: [
-        // remove empty js files
-        new RemoveEmptyScriptsPlugin(),
+        new webpack.SourceMapDevToolPlugin({
+            filename: '../assets/[name].js.map',
+            append: "\\n//# sourceMappingURL={{ '[name].js.map' | asset_url }}",
+            module: true,
+            columns: true,
+        }),
+        new webpack.BannerPlugin("\\n\\n\tThis file is auto generated by webpack.\\n\tDo not edit this file directly.\\n\\n"),
+        new webpack.ProvidePlugin({
+            Turbo: "@hotwired/turbo"
+        }),
         // extract css from js files to separate files
         new MiniCssExtractPlugin({
             filename: '../snippets/[name].css.liquid',
         }),
-        // replace media queries variables in css files and liquid variables in js&css files
         new ReplaceInFileWebpackPlugin([
             {
                 dir: 'snippets',
-                test: [/\\.css.liquid$/, /\\.js.liquid/],
+                test: [/\.js\.liquid$/], // Target files with the '.js.liquid' extension
                 rules: [
                     // for liquid variables in js&css files
                     {
-                        search: /[']{{/g,
+                        search: /['"]{{/g,
                         replace: '{{',
                     },
                     {
-                        search: /}}[']/g,
+                        search: /}}['"]/g,
                         replace: '}}',
                     },
                     // for media queries variables in css files
@@ -18311,81 +18614,69 @@ module.exports = {
                 ],
             },
         ]),
-        // copy liquid files to sections folder, appends json scheme content, and script and style tags
-        new CopyPlugin({
-            patterns: [
-                {
-                    noErrorOnMissing: true,
-                    from: "components/**/*.liquid",
-                    to: "../sections/[name].liquid",
-                    transform(content, path) {
-
-                        // get file name without extension
-                        let fileName = path.split('\\\\').pop().split('.').shift();
-
-                        // script tag
-                        let tsTag = '\\n\\n<script>{% render "' + fileName + '.js" %}</script>\\n';
-
-                        // style tag
-                        let scssTag = '\\n{% style %}{% render "' + fileName + '.css" %}{% endstyle %}\\n';
-
-                        // get the path name of the json file
-                        let jsonPath = path.replace('.liquid', '.json');
-
-                        // get the json file content and wrap it with {% schema %} tags
-                        let jsonContent = '\\n{% schema %}' + fs.readFileSync(jsonPath, 'utf8') + '\\n{% endschema %}';
-
-                        // return the content of the liquid file with the ts & scss & json scheme content
-                        return content + tsTag + scssTag + jsonContent;
-
-                    },
-                }
-            ],
-        }),
+        // Add a plugin to rename files after they are generated
+        {
+            apply: (compiler) => {
+                compiler.hooks.emit.tapAsync('RenameFilesPlugin', (compilation, callback) => {
+                    Object.keys(compilation.assets).forEach((filename) => {
+                        if (filename.endsWith('.js')) {
+                            const newFilename = filename.replace('.js', '.js.liquid');
+                            compilation.assets[newFilename] = compilation.assets[filename];
+                            delete compilation.assets[filename];
+                        }
+                    });
+                    callback();
+                });
+            }
+        }
     ],
-    // resolve
+
     resolve: {
-        // extensions
         extensions: ['.scss', '.css', '.js', '.ts', '.liquid'],
+        alias: {
+            'shopify-api-js': path.resolve(__dirname, 'node_modules/shopify-api-js/lib/ShopifyFrontendHelper.js')
+        }
     },
-};`
+
+    optimization: {
+        minimize: false
+    }
+};
+`
+    },
+    {
+      name: `webpack.multi.config.js`, content: `
+// webpack.multi.config.js
+module.exports = [
+    require('./webpack.general.config.js'),
+    require('./webpack.js.config.js'),
+    require('./webpack.css.config.js'),
+];
+`
     },
   ];
 
-  if (configYml) {
-    filesToCreate = [
-      {
-        name: `config.yml`, content: `
-.env-template:
-  password: ${configYml.pass}
-  store: ${configYml.url}
-  ignores:
-  - .shopifyignore
-dev:
-  password: ${configYml.pass}
-  theme_id: "${configYml.id}"
-  store: ${configYml.url}
-  ignores:
-  - .shopifyignore
-    ` }
-    ]
-  }
-
-  filesToCreate.forEach(file => {
+  for (const file of filesToCreate) {
     if (!fs.existsSync('./' + file.name)) {
       fs.appendFileSync(file.name, file.content);
-      log('[ADDED] - ' + file.name + ' created successfully', 'success');
+      console.log('[ADDED] - ' + file.name + ' created successfully', 'success');
+    } else {
+      // check if user wants to overwrite
+      const answer = await question(`[ERROR - SKIP] - ${file.name} already exists. Do you want to overwrite? (y/n) `);
+      if (answer.toLowerCase() === 'y') {
+        fs.writeFileSync(file.name, file.content);
+        console.log('[OVERWRITTEN] - ' + file.name + ' overwritten successfully', 'success');
+      } else {
+        console.log('[SKIPPED] - ' + file.name + ' was not overwritten', 'warning');
+      }
     }
-    else {
-      log('[ERROR - SKIP] - ' + file.name + ' already exist', 'error');
-    }
-  });
+  }
 }
 
 // create all necessary folders
 createFolders = async function () {
 
-  const folders = ['js', 'css', 'css/defs', 'css/partials', 'css/pages', 'css/sections', 'js/partials', 'js/pages', 'js/sections', 'js/helpers'];
+  const folders = ['js', 'css', 'css/defs', 'css/partials', 'css/pages', 'css/sections', 'js/partials', 'js/pages', 'js/sections', 'js/helpers', '.github', '.github/workflows', '@types'];
 
   folders.forEach(folder => {
     if (!fs.existsSync('./' + folder)) {
@@ -18399,21 +18690,8 @@ createFolders = async function () {
 
 }
 
-// create config.yml
-createConfigYml = async function () {
-  let configData = {};
-
-  configData.url = await question("\nStore URL:\n");
-  configData.pass = await question("\n'theme kit' access key:\n");
-  configData.id = await question("\nTheme ID:\n");
-
-  await createFiles(configData);
-}
-
 // init function for code run
 init = async function () {
-
-  (await question("\n(y/n) - Create config.yml? ") == 'y') ? await createConfigYml() : null;
 
   (await question("\n(y/n) - Create all folders required? ") == 'y') ? await createFolders() : null;
 
@@ -18425,6 +18703,10 @@ init = async function () {
 
   log('\nALL READY', 'warning');
   log(`Please run 'npm install' then 'npm run watch'`, 'info');
+  log(`Thank you for installing SGA's Shopify Toolbox!
+
+For more information and documentation, visit https://github.com/Sounds-Good-Agency/Shopify-Toolbox.
+`, 'warning');
 
   process.exit()
 

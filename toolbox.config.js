@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // include node fs module
 var fs = require('fs');
 
@@ -72,7 +74,7 @@ addJsStyleTagToThemeLiquid = async function (name) {
 }
 
 // create all necessary files
-createFiles = async function (configYml) {
+createFiles = async function () {
 
 
   // liquid content
@@ -89,16 +91,34 @@ createFiles = async function (configYml) {
 
   let filesToCreate = [
     {
+      name: '.github/workflows/build.yml', content: `build.yml-contentTemplateVariable`
+    },
+    {
       name: '.mocharc.json', content: `.mocharc.json-contentTemplateVariable`
     },
     {
       name: '.babelrc', content: `.babelrc-contentTemplateVariable`
     },
     {
-      name: 'tsconfig.testing.json', content: `tsconfig.testing.json-contentTemplateVariable`
+      name: 'tsconfig.json', content: `tsconfig.json-contentTemplateVariable`
     },
     {
-      name: 'js/helpers/createSection.js', content: `createSection.js-contentTemplateVariable`
+      name: 'js/helpers/track-liquid-loader.js', content: `track-liquid-loader.js-contentTemplateVariable`
+    },
+    {
+      name: 'js/helpers/createComp.js', content: `createComp.js-contentTemplateVariable`
+    },
+    {
+      name: 'js/helpers/sectionUtils.js', content: `sectionUtils.js-contentTemplateVariable`
+    },
+    {
+      name: 'js/helpers/DynamicCssRenderPlugin.js', content: `DynamicCssRenderPlugin.js-contentTemplateVariable`
+    },
+    {
+      name: 'js/helpers/inject-html-loader.js', content: `inject-html-loader.js-contentTemplateVariable`
+    },
+    {
+      name: 'js/helpers/fetchErrorHandle.js', content: `fetchErrorHandle.js-contentTemplateVariable`
     },
     {
       name: `.browserslistrc`, content: `.browserslistrc-contentTemplateVariable`
@@ -110,10 +130,13 @@ createFiles = async function (configYml) {
       name: `js/libs.js`, content: `libs.js-contentTemplateVariable`
     },
     {
+      name: `js/globals.js`, content: `globals.js-contentTemplateVariable`
+    },
+    {
       name: `js/helpers/ReplaceInFileWebpackPluginCustom.js`, content: `ReplaceInFileWebpackPluginCustom.js-contentTemplateVariable`
     },
     {
-      name: `js/helpers/sectionClass.js`, content: `sectionClass.js-contentTemplateVariable`
+      name: `js/helpers/loader.component.js`, content: `loader.component.js-contentTemplateVariable`
     },
     {
       name: `js/partials/navigation.js`, content: `navigation.js-contentTemplateVariable`
@@ -123,6 +146,9 @@ createFiles = async function (configYml) {
     },
     {
       name: `css/theme.css`, content: `theme.css-contentTemplateVariable`
+    },
+    {
+      name: `@types/styles.d.ts`, content: `styles.d.ts-contentTemplateVariable`
     },
     {
       name: `.eslintignore`, content: `.eslintignore-contentTemplateVariable`
@@ -161,44 +187,40 @@ createFiles = async function (configYml) {
       name: `postcss.config.js`, content: `postcss.config.js-contentTemplateVariable`
     },
     {
-      name: `webpack.config.js`, content: `webpack.config.js-contentTemplateVariable`
+      name: `webpack.css.config.js`, content: `webpack.css.config.js-contentTemplateVariable`
+    },
+    {
+      name: `webpack.js.config.js`, content: `webpack.js.config.js-contentTemplateVariable`
+    },
+    {
+      name: `webpack.general.config.js`, content: `webpack.general.config.js-contentTemplateVariable`
+    },
+    {
+      name: `webpack.multi.config.js`, content: `webpack.multi.config.js-contentTemplateVariable`
     },
   ];
 
-  if (configYml) {
-    filesToCreate = [
-      {
-        name: `config.yml`, content: `
-.env-template:
-  password: ${configYml.pass}
-  store: ${configYml.url}
-  ignores:
-  - .shopifyignore
-dev:
-  password: ${configYml.pass}
-  theme_id: "${configYml.id}"
-  store: ${configYml.url}
-  ignores:
-  - .shopifyignore
-    ` }
-    ]
-  }
-
-  filesToCreate.forEach(file => {
+  for (const file of filesToCreate) {
     if (!fs.existsSync('./' + file.name)) {
       fs.appendFileSync(file.name, file.content);
-      log('[ADDED] - ' + file.name + ' created successfully', 'success');
+      console.log('[ADDED] - ' + file.name + ' created successfully', 'success');
+    } else {
+      // check if user wants to overwrite
+      const answer = await question(`[ERROR - SKIP] - ${file.name} already exists. Do you want to overwrite? (y/n) `);
+      if (answer.toLowerCase() === 'y') {
+        fs.writeFileSync(file.name, file.content);
+        console.log('[OVERWRITTEN] - ' + file.name + ' overwritten successfully', 'success');
+      } else {
+        console.log('[SKIPPED] - ' + file.name + ' was not overwritten', 'warning');
+      }
     }
-    else {
-      log('[ERROR - SKIP] - ' + file.name + ' already exist', 'error');
-    }
-  });
+  }
 }
 
 // create all necessary folders
 createFolders = async function () {
 
-  const folders = ['js', 'css', 'css/defs', 'css/partials', 'css/pages', 'css/sections', 'js/partials', 'js/pages', 'js/sections', 'js/helpers'];
+  const folders = ['js', 'css', 'css/defs', 'css/partials', 'css/pages', 'css/sections', 'js/partials', 'js/pages', 'js/sections', 'js/helpers', '.github', '.github/workflows', '@types'];
 
   folders.forEach(folder => {
     if (!fs.existsSync('./' + folder)) {
@@ -212,21 +234,8 @@ createFolders = async function () {
 
 }
 
-// create config.yml
-createConfigYml = async function () {
-  let configData = {};
-
-  configData.url = await question("\nStore URL:\n");
-  configData.pass = await question("\n'theme kit' access key:\n");
-  configData.id = await question("\nTheme ID:\n");
-
-  await createFiles(configData);
-}
-
 // init function for code run
 init = async function () {
-
-  (await question("\n(y/n) - Create config.yml? ") == 'y') ? await createConfigYml() : null;
 
   (await question("\n(y/n) - Create all folders required? ") == 'y') ? await createFolders() : null;
 
@@ -238,6 +247,10 @@ init = async function () {
 
   log('\nALL READY', 'warning');
   log(`Please run 'npm install' then 'npm run watch'`, 'info');
+  log(`Thank you for installing SGA's Shopify Toolbox!
+
+For more information and documentation, visit https://github.com/Sounds-Good-Agency/Shopify-Toolbox.
+`, 'warning');
 
   process.exit()
 

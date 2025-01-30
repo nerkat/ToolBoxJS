@@ -1,34 +1,19 @@
-// needed for css compilation
-// import './compName.scss';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 
-// base class for component
-// import sectionClass from '../../js/helpers/sectionClass';
+// Import CSS and HTML files
+import styles from './compFormattedName.scss';
 
-// create section class from base
-// const compNameSectionId = "'{{ section.id }}'";
+class compFormattedName extends LitElement {
 
-// init section class
-// const compNameSection:any = new sectionClass('compNameSection', compNameSectionId);
+  // Use unsafeCSS to apply the imported styles
+  static styles = css\\\`\\\${unsafeCSS(styles)}\\\`;
 
-// document.addEventListener('DOMContentLoaded', function () {
+  render() {
+    // Use unsafeHTML to inject the HTML template content
+    return html\\\`<!-- PLACEHOLDER_TEMPLATE -->\\\`;
+  }
 
-    // code goes here
+}
 
-    // access component elements by id - for example
-    // compNameSection.someID.innerHTML = 'Hello World';
-
-    // set functions on the component scope
-    // it will be accessible from 'sections.compNameSection' global object
-    // compNameSection.someFunction = function () {
-        // do something
-    // }
-
-    // refresh finish event
-    // compNameSection.onRefreshFinish = function (htmlElement) {
-    //     console.log('onRefreshFinish - compNameSection:' + htmlElement.outerHTML);
-    // }
-
-    // call this to refresh the section - reload html from shopify
-    // compNameSection.refresh();
-
-// });
+customElements.define('my-component', compFormattedName);
+export default compFormattedName;

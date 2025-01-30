@@ -1,0 +1,38 @@
+{
+  "name": "@sga/create-toolbox-theme",
+  "version": "1.0.0-alpha-3",
+  "description": "Sounds Good Agency's toolbox for frontend Shopify theme development",
+  "bin": {
+    "toolbox": "./dist/toolbox.js"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "prepare": "npm run build",
+    "prebuild": "rimraf dist",
+    "build": "node toolbox.build.js",
+    "release": "npm run build && npm run changeset publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sounds-Good-Agency/Shopify-Toolbox.git"
+  },
+  "keywords": [
+    "shopify",
+    "liquid",
+    "components",
+    "frontend",
+    "theme-development"
+  ],
+  "author": "Sounds Good Agency (package founder: Neria Katz)",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/Sounds-Good-Agency/Shopify-Toolbox/issues"
+  },
+  "homepage": "https://github.com/Sounds-Good-Agency/Shopify-Toolbox#readme",
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "rimraf": "^5.0.5"
+  }
+}
