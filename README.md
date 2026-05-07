@@ -1,8 +1,10 @@
-  <h3>ToolBoxJS Shopify Front-End component framework </h3>
- <p>
-    An awesome WEBPACK/TS/SCSS component-based js framework to jumpstart your Shopify projects!
-</p>
-<br>
+# ToolBoxJS
+
+ToolBoxJS is a component-based frontend framework for Shopify theme development.
+
+It was built to give Shopify teams a cleaner, faster, and more maintainable way to develop interactive theme sections using a modern frontend workflow on top of Shopify's native theme architecture.
+
+Instead of scattering Liquid, styles, schema, and JavaScript across unrelated files, ToolBoxJS treats each section as a self-contained module with a predictable structure and a build pipeline that produces Shopify-ready output.
 
 [![Shopify][Shopify.com]][Shopify-url]
 [![TypeScript][TypeScript.com]][TypeScript-url]
@@ -16,199 +18,427 @@
 [![PostCSS][PostCSS.com]][PostCSS-url]
 [![Mocha][Mocha.com]][Mocha-url]
 
+## Why ToolBoxJS Exists
 
+Shopify theme work becomes messy quickly when multiple frontend developers each create their own structure, conventions, and patterns for sections.
 
-<!-- ABOUT THE PROJECT -->
-# About The Project
+Common team problems:
 
-**ToolBoxJS** is a framework that allows you to build your Shopify theme using a component-based approach. The framework is built using TypeScript, SCSS, and Webpack.
+- inconsistent section architecture
+- duplicated setup work for every new section
+- poor separation between Liquid, schema, styling, and behavior
+- awkward handling of dynamic theme values inside CSS and JavaScript
+- slower onboarding for new developers
+- fragile builds and harder maintenance over time
 
-It is a great way to jumpstart your Shopify projects and get up and running quickly.
-    
-Separating the dev environment from the theme, achieving a better maintainability and reusability of the components.
+ToolBoxJS was built to solve those problems with one repeatable system.
 
-Each component is a self-contained module under its own folder, with its own scss, ts, json and liquid files.
+## What It Does
 
-Typescript and scss are compiled to js and css with webpack, and are made into snippets.
+ToolBoxJS introduces a component-based workflow for Shopify sections.
 
-Those snippets are rendered into the liquid file, along with the json scheme, and the section is ready to be used in the theme.
+Each section lives in its own folder and is made up of four source files:
 
-Each component implements a base class 'sectionClass', which implements some extra functionality, such as refreshing the section DOM through shopify section rendering api, and more.
+- `ComponentName.liquid`
+- `ComponentName.scss`
+- `ComponentName.ts`
+- `ComponentName.json`
 
- <details>
-    <summary> Here's why you should use it use it </summary>
-    &nbsp;  
+Those files are then compiled and assembled into Shopify-ready output that can be used directly in the theme.
 
-* Guided 'config.yml' creation.
-* Auto adding 'Bundle.js' & bundle.css' to theme.liquid.
-* Components framework:
-    * Create new components from the CLI.
-    * Auto adding new components translation keys to scheme.
-    * Dedicated 'component' sub dir inside 'components' dir.
-    * Separation of liquid view and scheme, rendering from comp json file.
-    * comp.liquid/comp.ts/comp.scss compilations.
-    * Use liquid vars in comp ts/scss.
-    * Use media query variables in comp scss & global css.
-    * Base sectionClass initialized on each comp - gives you access in JS to:
-        * Section element.
-        * Section elements as html and as objects (for elements with 'id' attr).
-        * Section refresh function (see Shopify's [section rendering api](https://shopify.dev/api/section-rendering/).
-        * Section elements refresh function (see shopify [section rendering api](https://shopify.dev/api/section-rendering/).
-        * Access to all sections from the 'window.sections' array - allowing to run section specific functions - for example: sections[sectionName].refresh().
+## Core Ideas
 
+### 1. One Folder Per Section
 
-</details>
+Every section is treated as a self-contained frontend module with:
 
-<!-- GETTING STARTED -->
-# Getting Started
+- markup
+- styles
+- behavior
+- schema
 
-Just grab the compiled 'toolbox.js' from 'dist' dir.
+This gives the whole team a predictable mental model and makes the codebase easier to navigate.
 
-For developers - ToolboxJS can be built from 'src' dir.
+### 2. CLI Scaffolding
 
-## Development
+ToolBoxJS can generate a new section from the command line, including:
 
-If you want to build the project on your own:
+- the component folder
+- the Liquid file
+- the SCSS file
+- the TypeScript file
+- the JSON schema file
+- starter boilerplate
 
+This removes repetitive setup and makes the preferred architecture the easiest one to follow.
+
+### 3. Sensible First-Run Automation
+
+On first run, ToolBoxJS does more than just drop files into a project.
+
+The bootstrap flow can:
+
+- create the required folder structure
+- generate the development config files
+- generate build and tooling files
+- create helper utilities
+- add the JavaScript bundle reference to `theme.liquid`
+- add the CSS bundle render to `theme.liquid`
+
+That means a Shopify project can go from raw theme structure to a real frontend development environment in one guided setup flow.
+
+Example of what gets injected into `theme.liquid`:
+
+```liquid
+<script src="{{ 'bundle.js' | asset_url }}" defer="defer"></script>
+<style>{% render 'bundle.css' %}</style>
+```
+
+This is one of the most useful quality-of-life features in the framework because it removes easy-to-forget manual setup steps and makes project initialization more consistent across teams.
+
+### 4. Modern Frontend Build Workflow
+
+The framework uses TypeScript, SCSS, Webpack, PostCSS, Babel, and linting/tooling to create a cleaner developer experience while still targeting Shopify themes.
+
+It separates source code from final theme output so developers can work in a modern environment without losing Shopify compatibility.
+
+### 5. Inline CSS and JavaScript With Liquid Variables
+
+One of the most useful parts of the workflow is that compiled CSS and JavaScript can be rendered inline into the final Liquid output.
+
+That makes it possible to use Liquid variables directly inside styling and behavior, which is especially valuable inside Shopify's constraints.
+
+Example use cases:
+
+- typography values controlled by theme settings
+- spacing and layout values driven by section schema
+- JS behavior that depends directly on Liquid-rendered configuration
+
+### 6. Smarter Sections by Default
+
+ToolBoxJS was designed to make Shopify sections more interactive and maintainable by default.
+
+Instead of sections being treated as isolated Liquid fragments, the framework encourages a stronger component mindset with reusable structure, clearer ownership, and better behavior patterns.
+
+### 7. Theme Bootstrap
+
+The installation flow can help bootstrap the development environment by:
+
+- creating required folders
+- creating config and tooling files
+- adding bundle references to `theme.liquid`
+- preparing the project structure for development
+
+That reduces setup friction and makes it easier to standardize project starts across a team.
+
+### 8. Section Utilities
+
+ToolBoxJS also includes helper utilities for working with Shopify sections in the browser.
+
+Examples include:
+
+- refreshing section DOM through Shopify's section rendering API
+- loading-state UI helpers
+- section-level runtime utilities
+
+## Architecture Highlights
+
+### Component Structure
+
+Each section is structured like this:
+
+```text
+components/
+  HeroComp/
+    HeroComp.liquid
+    HeroComp.scss
+    HeroComp.ts
+    HeroComp.json
+```
+
+### Generated SCSS Base Template
+
+The generated SCSS starts from an encapsulated component boundary using `:host`, which helps prevent cross-component style leakage and keeps section styling scoped by default.
+
+Example:
+
+```scss
+:host {
+  h1 {
+    font-size: '{{ section.settings.fontsize_title | append: "px" }}';
+    line-height: '{{ section.settings.lineheight_title | append: "px" }}';
+  }
+
+  button {
+    font-size: '{{ section.settings.fontsize_button | append: "px" }}';
+    line-height: '{{ section.settings.lineheight_button | append: "px" }}';
+  }
+}
+```
+
+This is a good example of the framework's design philosophy:
+
+- styles are scoped cleanly
+- Liquid settings can directly influence output
+- sections start from a predictable and reusable styling model
+
+### Generated JavaScript / TypeScript Base Template
+
+The generated component script gives developers an immediate starting point for connecting behavior to the section view.
+
+Example:
+
+```ts
+import { LitElement, html, css, unsafeCSS } from 'lit';
+import styles from './compFormattedName.scss';
+
+class compFormattedName extends LitElement {
+  static styles = css`${unsafeCSS(styles)}`;
+
+  render() {
+    return html`<!-- PLACEHOLDER_TEMPLATE -->`;
+  }
+}
+
+customElements.define('my-component', compFormattedName);
+export default compFormattedName;
+```
+
+This matters because new sections are not starting from an empty file. They already have:
+
+- an initialized component class
+- a direct styling connection
+- a render surface
+- a path into interactive behavior
+
+That makes it easier for developers to move quickly from structure to real UI behavior.
+
+### Generated Liquid and Schema Templates
+
+The starter templates also make the relationship between view and schema explicit from the start.
+
+Example Liquid:
+
+```liquid
+<h1>{{ section.id }}</h1>
+<h2>{{ section.settings.title }}</h2>
+```
+
+Example schema:
+
+```json
+{
+  "name": "t:sections.compName.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.compName.settings.title",
+      "default": "compName Title"
+    }
+  ]
+}
+```
+
+That makes sections easier to reason about because the developer can immediately see:
+
+- what the section renders
+- which settings power it
+- where the styling hooks connect
+- where the interactive logic will live
+
+### Build Flow
+
+The framework compiles and packages:
+
+- TypeScript into JavaScript assets
+- SCSS into CSS assets
+- component output into Shopify-compatible section/snippet usage
+
+This enables a cleaner authoring workflow while still fitting the final constraints of Shopify themes.
+
+### Bootstrap + Template Packaging
+
+The distributed `toolbox.js` is not a simple script. It is built by taking the source templates and helper files and packaging them into a single installable bootstrap tool.
+
+The build process:
+
+- reads the source files recursively
+- injects their contents into template placeholders
+- writes a distributable `toolbox.js`
+- makes the generated bootstrap executable
+
+This is an important part of the project because it turns the framework into something a team can actually install and use repeatedly across projects.
+
+## Why It Matters
+
+ToolBoxJS improves more than just file organization.
+
+It improves how frontend teams work.
+
+Benefits:
+
+- shared conventions across developers
+- faster section creation
+- reduced boilerplate
+- cleaner separation of concerns
+- easier onboarding
+- more predictable builds
+- improved maintainability
+- better support for interactive UX inside Shopify
+
+In short, it turns Shopify theme work into a more structured frontend engineering workflow.
+
+## Best Fit
+
+ToolBoxJS is especially useful for teams that:
+
+- build custom Shopify themes with many sections
+- care about consistency across multiple developers
+- want a more component-based architecture
+- need stronger frontend structure on top of Shopify
+- want to move faster without sacrificing maintainability
+
+## Getting Started
+
+Grab the compiled `toolbox.js` from `dist`.
+
+For framework development, work from `src`.
+
+### Development
 
 1. Clone the repo
-   
-      ```properties
-   git clone https://github.com/sounds-good-agency/shopify-toolbox.git
-   ```
-2. Install node packages
 
-    ```properties
-    npm install
-    ```
+```bash
+git clone https://github.com/nerkat/ToolBoxJS.git
+```
+
+2. Install packages
+
+```bash
+npm install
+```
+
 3. Run the build script
 
-    ```properties
-    node toolbox.build
-    ```
+```bash
+node toolbox.build.js
+```
 
 ## Usage
 
-Check the video tutorial [here](https://youtu.be/qThgFJW2X6A).
+Video tutorial:
 
+[ToolBoxJS setup walkthrough](https://youtu.be/qThgFJW2X6A)
 
-To use toolbox.js in your Shopify project, simply:
+To use ToolBoxJS in a Shopify project:
 
-1. Copy 'toolbox.js' from 'dist' to YOUR project folder
-
+1. Copy `toolbox.js` from `dist` into your project folder
 2. Run the toolbox script
-    ```properties
-    node toolbox
-    ```
-3. Go through the instructions showed in the console
-4. Run watch
-    ```properties
-    npm run watch
-    ```
-5. Use the CLI to create new components
-    ```properties
-    npm run section [NAME]
-    ```
 
-## Adding 3rd party libraries from npm
-1. Install package from npm
-    ```javascript
-    npm i slick-carousel
-    ```
-2. Add JS import in 'libs.js'
+```bash
+node toolbox
+```
 
-    ```javascript
-    import * as slick from 'slick-carousel';
-    window.slick = slick;
-    ```
-3. Add CSS import in 'theme.css' (if required for library)
+3. Follow the interactive setup prompts
+4. Start watch mode
 
-    ```css
-    @import '../node_modules/slick-carousel/slick/slick.css';
-   ```
+```bash
+npm run watch
+```
 
-## Using media-query-variable
-* Variables are configured in '_variables.css' and available anywhere in the CSS/SCSS 
+5. Create a new component from the CLI
 
-    ```css
-    @custom-media --very-large-and-up (min-width: 1440px);
-    @custom-media --large-and-up (min-width: 1280px);
-    @custom-media --large-and-down (max-width: 1279px);
-    @custom-media --medium-and-up (min-width: 1024px);
-    @custom-media --medium-and-down (max-width: 1023px);
-    @custom-media --small-and-up (min-width: 768px);
-    @custom-media --small-and-down (max-width: 767px);
-    ```
-* Usage
+```bash
+npm run section [NAME]
+```
 
-    ```scss
-    @media (--small-and-up) {
-        .some-class{
-            
-        }
-    }
-        @media (--medium-and-down) {
-        .some-class{
-            
-        }
-    }
-    ```
+## Adding Third-Party Libraries
 
-## ThemeKit npm commands
-1. ThemeKit get
-   
-    ```properties
-    npm run themeget
-    ```
-2. ThemeKit deploy
-   
-    ```properties
-    npm run themedeploy
-    ```
-3. ThemeKit open
-   
-    ```properties
-    npm run themeopen
-    ```
-    
+1. Install the package
 
+```bash
+npm i slick-carousel
+```
 
-<!-- CONTRIBUTING -->
-# Contributing
+2. Add the JS import in `libs.js`
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+```javascript
+import * as slick from 'slick-carousel';
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+window.slick = slick;
+```
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+3. Add the CSS import in `theme.css` if needed
 
+```css
+@import '../node_modules/slick-carousel/slick/slick.css';
+```
 
-See the [open issues](https://github.com/sounds-good-agency/shopify-toolbox/issues) for a full list of proposed features (and known issues).
+## Custom Media Variables
 
-## How to publish
+Variables are configured in `_variables.css` and can be used anywhere in CSS or SCSS.
 
-Publish process is automated with changesets.
+```css
+@custom-media --very-large-and-up (min-width: 1440px);
+@custom-media --large-and-up (min-width: 1280px);
+@custom-media --large-and-down (max-width: 1279px);
+@custom-media --medium-and-up (min-width: 1024px);
+@custom-media --medium-and-down (max-width: 1023px);
+@custom-media --small-and-up (min-width: 768px);
+@custom-media --small-and-down (max-width: 767px);
+```
 
-Whenever you are done with changes, you should run `npx changeset` locally which lets you pick affected packages and how serious the change is (major, minor, patch) and then put in summary of the change.
+Usage:
 
-This process will create a file in .changesets folder with generated name. You can edit the file and add more details about the change. In the end this will be added to CHANGELOG.md so it's good to describe it for others.
+```scss
+@media (--small-and-up) {
+  .some-class {
+  }
+}
 
-Small changes can be pushed directly to `master`, but for something bigger go with PR.
+@media (--medium-and-down) {
+  .some-class {
+  }
+}
+```
 
-There is a Github action configured that runs after commit to the `master`. Based on existing `.changesets` files, it will create **Next release** PR summarizing all changes and picking proper version. This PR is automatically updated whenever you push new changes to `master`.
+## Theme Commands
 
-After the **Next release** PR is merged, it will automatically build affected packages and publish them to NPM.
+```bash
+npm run themepull
+npm run themepush
+npm run themeopen
+```
 
+## Contributing
 
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+Contributions are welcome.
+
+If you have ideas for improvements, feel free to fork the project, open an issue, or submit a pull request.
+
+### Basic flow
+
+1. Fork the project
+2. Create a feature branch
+3. Commit changes
+4. Push the branch
+5. Open a pull request
+
+## Publishing
+
+Publishing is automated with Changesets.
+
+When you're done with changes:
+
+```bash
+npx changeset
+```
+
+That creates a changeset file describing the release impact and summary. After release PRs are merged, the configured workflow can build and publish affected packages automatically.
 
 [Shopify.com]: https://img.shields.io/badge/Shopify-7AB55C?style=flat&logo=Shopify&logoColor=white
-[Shopify-url]: https://www.Shopify.com/
+[Shopify-url]: https://www.shopify.com/
 
 [nodejs.com]: https://img.shields.io/badge/Node.js-339933?style=flat&logo=Node.js&logoColor=white
 [nodejs-url]: https://nodejs.org/
