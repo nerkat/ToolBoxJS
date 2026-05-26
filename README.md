@@ -13,7 +13,7 @@ Rather than treating a theme as a loose collection of sections, ToolBoxJS treats
 
 ## Workflow Preview
 
-[![ToolBoxJS Workflow Demo](https://img.youtube.com/vi/qThgFJW2X6A/maxresdefault.jpg)](https://www.youtube.com/watch?v=qThgFJW2X6A)
+[![ToolBoxJS Workflow Demo](https://img.youtube.com/vi/qThgFJW2X6A/hqdefault.jpg)](https://www.youtube.com/watch?v=qThgFJW2X6A)
 
 ## Positioning
 
